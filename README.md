@@ -31,6 +31,17 @@ The existing React/Vite frontend and Express server are retained. The Express pr
 
 The real MySQL-backed scope in this integration is farmer authentication, centre/crop/booking data, queue operations, quality/weigh-slip records, and procurement payments. Buyer marketplace orders, grievance tickets, assisted e-KYC, simulated notifications, and offline-sync demonstrations remain demo UI features and are not represented as persisted MySQL records. Assisted farmer lookup and token issuance do use the API for previously registered farmers.
 
+### Deploying the frontend to Vercel
+
+Vercel can host the Vite frontend, but this repository's MySQL-backed API runs in the Express process started by `npm run dev` or `npm start`; deploying only the Vite build does not deploy that API or make a local MySQL server reachable. Farmer registration and login require both the Express API and a MySQL database reachable by that API.
+
+1. Deploy this project's Express backend to a Node.js host and configure its server-side `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `JWT_SECRET`, `CORS_ORIGIN`, and any needed AI/map secrets in that host's environment settings. Use a remote database and a dedicated least-privilege database account; do not use the developer laptop's `127.0.0.1` database for a cloud deployment.
+2. Add `VITE_API_BASE_URL` to the Vercel project's **Environment Variables**. Set it to the backend's HTTPS origin only, such as `https://api.example.com` (no trailing slash). This is a public API URL, not a secret.
+3. Add the exact Vercel site origin to the backend's `CORS_ORIGIN` setting, then redeploy the frontend so Vite embeds `VITE_API_BASE_URL`.
+4. Test the backend's `/api/health` endpoint and then register a test farmer from the deployed website. The health endpoint must report a connected database before registration can work.
+
+If there is no remotely hosted Express API and MySQL database yet, registration cannot work from Vercel until those services are deployed and configured. Never put database credentials or `JWT_SECRET` in Vercel variables prefixed with `VITE_`.
+
 ### Prerequisites and setup
 
 - Node.js 20 or newer

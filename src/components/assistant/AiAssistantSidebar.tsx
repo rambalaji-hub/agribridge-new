@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { LanguageCode } from '../../types';
+import { apiUrl } from '../../lib/api';
 
 interface Message {
   id: string;
@@ -660,7 +661,7 @@ export const AiAssistantSidebar: React.FC = () => {
     setGeminiVoiceActive(true);
 
     try {
-      const res = await fetch('/api/assistant/tts', {
+      const res = await fetch(apiUrl('/api/assistant/tts'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: cleanText, language: langCode }),
@@ -902,7 +903,7 @@ export const AiAssistantSidebar: React.FC = () => {
 
       const controller = new AbortController();
       transcriptionAbortRef.current = controller;
-      const response = await fetch('/api/assistant/transcribe', {
+      const response = await fetch(apiUrl('/api/assistant/transcribe'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1308,7 +1309,7 @@ export const AiAssistantSidebar: React.FC = () => {
         }
       };
 
-      const response = await fetch('/api/assistant/chat', {
+      const response = await fetch(apiUrl('/api/assistant/chat'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

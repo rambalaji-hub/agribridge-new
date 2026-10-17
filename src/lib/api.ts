@@ -1,6 +1,11 @@
 import { ProcurementBooking, ProcurementCentre, ProfileUpdate, UserProfile } from '../types';
 
 let accessToken: string | null = null;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, '') || '';
+
+export function apiUrl(path: string): string {
+  return `${API_BASE_URL}${path}`;
+}
 
 export class ApiRequestError extends Error {
   constructor(message: string, public status: number) {
@@ -23,10 +28,27 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   if (options.body) headers.set('Content-Type', 'application/json');
   if (accessToken) headers.set('Authorization', `Bearer ${accessToken}`);
 
-  const response = await fetch(path, { ...options, headers });
-  const body = await response.json().catch(() => null) as { error?: string } | null;
+  let response: Response;
+  try {
+    response = await fetch(apiUrl(path), { ...options, headers });
+  } catch (error) {
+    console.error(`Could not reach AgriBridge API (${path}):`, error);
+    throw new Error(API_BASE_URL
+      ? 'Could not reach the AgriBridge API. Check that the backend is running and allows this website in CORS settings.'
+      : 'The AgriBridge API is not available at this website. Deploy the Express backend, set VITE_API_BASE_URL in Vercel, and redeploy.');
+  }
+  const isJson = response.headers.get('content-type')?.includes('application/json') || false;
+  const body = isJson
+    ? await response.json().catch(() => null) as { error?: string } | null
+    : null;
   if (!response.ok) {
+    if (!isJson) {
+      throw new ApiRequestError('The API endpoint is unavailable. This deployment may be serving only the frontend; configure VITE_API_BASE_URL to the deployed Express backend.', response.status);
+    }
     throw new ApiRequestError(body?.error || `Request failed (${response.status}).`, response.status);
+  }
+  if (!isJson) {
+    throw new ApiRequestError('The API returned an unexpected response. Confirm VITE_API_BASE_URL points to the Express backend, not the frontend.', response.status);
   }
   return body as T;
 }
