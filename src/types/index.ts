@@ -27,6 +27,10 @@ export interface UserProfile {
   ifscCode?: string;
 }
 
+export type ProfileUpdate = Partial<Omit<UserProfile, 'avatarUrl'>> & {
+  avatarUrl?: string | null;
+};
+
 export type CropType = 
   | 'Paddy (Dhan)' 
   | 'Wheat (Gehun)' 
@@ -72,8 +76,8 @@ export interface ProcurementCentre {
   currentQueueCount: number;
   averageWaitTimeMinutes: number;
   availableSlotsToday: number;
-  lat: number;
-  lng: number;
+  lat: number | null;
+  lng: number | null;
 }
 
 export type ProcurementStage = 

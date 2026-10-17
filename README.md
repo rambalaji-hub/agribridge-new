@@ -51,11 +51,40 @@ The real MySQL-backed scope in this integration is farmer authentication, centre
 
    If you do not want the application to use root, stop here and ask your MySQL administrator to provide an already-authorized application account with `SELECT`, `INSERT`, `UPDATE`, and `DELETE` on `agribridge.*`. If none exists, administrator approval is required to create a dedicated account and grant those database-scoped privileges. Do not try to use `GRANT` as a substitute for creating a MySQL 8 account; your administrator must approve/provision it through the standard process.
 
+### Google Maps for Farmer Procurement Centres
+
+The existing Farmer Dashboard → Procurement Centre view reads centre records from `GET /api/centres`. The map deliberately plots only records with non-null latitude and longitude; the initialization script's sample centre records have no coordinates and are not assigned guessed locations. Populate `procurement_centres.latitude` and `procurement_centres.longitude` only with coordinates verified by your procurement-centre administrator. No database migration is required because those columns already exist.
+
+1. In Google Cloud, enable billing and enable **Maps JavaScript API**, **Places API (New)**, **Geocoding API**, and **Routes API**.
+2. Create two API keys:
+   - Browser key: restrict by HTTP referrer for the development origins you use (for example `http://localhost:3000/*` and `http://localhost:5173/*`) and restrict APIs to Maps JavaScript API and Places API (New). This key is necessarily visible in the web page; referrer/API restrictions are required.
+   - Server key: restrict to the server's outbound IP address and Geocoding API and Routes API. Keep it server-side; never prefix it with `VITE_`.
+3. Add both keys to the existing `.env.local` without replacing your database or authentication variables:
+
+   ```dotenv
+   VITE_GOOGLE_MAPS_API_KEY=your-referrer-restricted-browser-key
+   GOOGLE_MAPS_SERVER_API_KEY=your-server-restricted-key
+   ```
+
+4. Restart the development server so Vite and Express reload their environment.
+5. Run `npm run db:check` before testing the dashboard. Then run `npm run dev` and open `http://localhost:3000`.
+6. Sign in to a Farmer account, open **Procurement Centre**, search for a place or allow current-location access, and select a 5/10/25/50 km radius. Road distance and travel time require the Routes API and a configured server key. Without that service the screen explicitly reports route data unavailable and distinguishes its straight-line fallback.
+
+The map's location and availability data come from the MySQL-backed centre API; last-updated time is shown after a successful API read. Slot availability reflects the backend's remaining slots for today. Map/API data and live routing have not been verified until Google Cloud keys are configured and these calls succeed.
+
 5. Test actual database connectivity (this runs `SELECT 1`; it does not modify the database):
 
    ```sh
    npm run db:check
    ```
+
+   For existing databases, apply the additive profile editor schema update before using profile edits:
+
+   ```sh
+   npm run db:migrate:profile
+   ```
+
+   It only adds missing nullable profile columns (`avatar_data`, `gstin`, `trade_category`, `csc_kiosk_id`, `gov_cadre`) and preserves existing rows.
 
 6. After the health check passes, create an initial application administrator only if needed with `npm run admin:create`; it inserts a user record. The password input is hidden.
 7. Start the combined backend/frontend development server with `npm run dev` (default `http://localhost:3000`). For a separate Vite frontend, run the API server on port 3000 and configure `CORS_ORIGIN` to the Vite origin.
@@ -65,6 +94,8 @@ The real MySQL-backed scope in this integration is farmer authentication, centre
 
 - `POST /api/auth/register` (farmer only) and `POST /api/auth/login`
 - `GET /api/centres`
+- Farmer-authenticated `POST /api/maps/geocode` (server-side Google Geocoding API)
+- Farmer-authenticated `POST /api/maps/routes` (server-side Google Routes API)
 - Authenticated `GET/POST /api/crops`
 - Authenticated `GET/POST /api/bookings`, plus booking status lookup and authorized status updates
 - Officer/admin/assisted operations to record quality assessments and weigh slips; officer/admin payment processing
@@ -85,3 +116,13 @@ After MySQL setup and a successful `npm run db:check`, run `npm run dev` and ver
 5. Test invalid registration/booking data and a request without a bearer token; the API should return explicit 4xx errors without writing records.
 
 Payment processing currently creates a `Processing` transaction record; actual bank/DBT settlement requires a separately integrated payment provider and must not be represented as a completed transfer.
+
+### Crop photo credits
+
+Groundnut, mustard, and sugarcane crop cards use optimized local photos. The files are resized web copies of these Wikimedia Commons photographs:
+
+- Groundnut: [Arachis hypogaea 006.JPG](https://commons.wikimedia.org/wiki/File:Arachis_hypogaea_006.JPG), H. Zell, [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0).
+- Indian mustard: [Mustard Flower-1.jpg](https://commons.wikimedia.org/wiki/File:Mustard_Flower-1.jpg), Trikutdas, [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0).
+- Sugarcane: [Sugarcane field in Salem.jpg](https://commons.wikimedia.org/wiki/File:Sugarcane_field_in_Salem.jpg), Thamizhpparithi Maari, [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0).
+
+The resized photo assets retain the source files' respective licenses. These are sourced photographs, not AI-generated images.

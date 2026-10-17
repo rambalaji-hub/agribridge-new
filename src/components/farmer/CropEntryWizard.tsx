@@ -27,6 +27,8 @@ export const CropEntryWizard: React.FC = () => {
   const { 
     currentUser, 
     centres, 
+    bookingCentreId,
+    setBookingCentreId,
     createBooking, 
     setActiveTab, 
     speakText, 
@@ -48,7 +50,7 @@ export const CropEntryWizard: React.FC = () => {
   const [location, setLocation] = useState<string>(currentUser?.location || 'Taraori Village, Karnal, Haryana');
   const [pincode, setPincode] = useState<string>('132001');
   const [procurementCategory, setProcurementCategory] = useState<string>('Government MSP Official Procurement');
-  const [selectedCentreId, setSelectedCentreId] = useState<string>('centre-01');
+  const [selectedCentreId, setSelectedCentreId] = useState<string>('');
   const [selectedSlotTime, setSelectedSlotTime] = useState<string>('10:30 AM - 12:00 PM');
   const [selectedDate, setSelectedDate] = useState<string>(dateOptions[0]);
   const [generatedBooking, setGeneratedBooking] = useState<ProcurementBooking | null>(null);
@@ -56,10 +58,13 @@ export const CropEntryWizard: React.FC = () => {
   const [isBooking, setIsBooking] = useState(false);
 
   useEffect(() => {
-    if (centres.length && !centres.some(centre => centre.id === selectedCentreId)) {
+    if (bookingCentreId && centres.some(centre => centre.id === bookingCentreId)) {
+      setSelectedCentreId(bookingCentreId);
+      setBookingCentreId(null);
+    } else if (centres.length && !centres.some(centre => centre.id === selectedCentreId)) {
       setSelectedCentreId(centres[0].id);
     }
-  }, [centres, selectedCentreId]);
+  }, [bookingCentreId, centres, selectedCentreId, setBookingCentreId]);
 
   const selectedCrop = OFFICIAL_CROPS.find(c => c.name === selectedCropName) || OFFICIAL_CROPS[0];
   const recommendedCentres = centres.filter(c => c.supportedCrops.includes(selectedCropName));

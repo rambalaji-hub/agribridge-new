@@ -108,6 +108,11 @@ html.dark ::-webkit-scrollbar-thumb:hover {
   background: #3f3f46;
 }
 
+.google-place-autocomplete gmp-place-autocomplete {
+  display: block;
+  width: 100%;
+}
+
 @media print {
   header, 
   aside, 

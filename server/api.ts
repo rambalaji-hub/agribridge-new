@@ -47,6 +47,21 @@ const loginSchema = z.object({
   identifier: z.string().trim().min(1).max(255),
   password: z.string().min(1).max(128),
 });
+const profileUpdateSchema = z.object({
+  name: z.string().trim().min(1).max(255).optional(),
+  mobile: z.string().trim().regex(/^[0-9+() -]{8,20}$/).optional(),
+  email: z.string().trim().email().max(255).or(z.literal('')).optional(),
+  location: z.string().trim().min(1).max(255).optional(),
+  state: z.string().trim().min(1).max(100).optional(),
+  district: z.string().trim().min(1).max(100).optional(),
+  landAcres: z.number().positive().max(100000).nullable().optional(),
+  primaryCrops: z.array(z.string().trim().min(1).max(100)).max(20).optional(),
+  avatarData: z.string().regex(/^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/]+=*$/).max(500000).nullable().optional(),
+  gstin: z.string().trim().max(32).nullable().optional(),
+  tradeCategory: z.string().trim().max(120).nullable().optional(),
+  cscKioskId: z.string().trim().max(64).nullable().optional(),
+  govCadre: z.string().trim().max(120).nullable().optional(),
+}).strict();
 const bookingSchema = z.object({
   crop: requiredText,
   quantityQuintals: z.number().positive().max(100000),
@@ -82,6 +97,22 @@ const cropSchema = z.object({
   acreage: z.number().positive().max(100000).optional(),
   estimatedQuantityQuintals: z.number().positive().max(100000).optional(),
   harvestDate: z.string().date().optional(),
+});
+const coordinateSchema = z.object({
+  lat: z.number().min(-90).max(90),
+  lng: z.number().min(-180).max(180),
+});
+const geocodeSchema = z.union([
+  z.object({ address: z.string().trim().min(1).max(255) }),
+  coordinateSchema,
+]);
+const routesSchema = z.object({
+  origin: coordinateSchema,
+  destinations: z.array(z.object({
+    centreId: z.string().min(1).max(64),
+    lat: z.number().min(-90).max(90),
+    lng: z.number().min(-180).max(180),
+  })).min(1).max(100),
 });
 const statusSchema = z.object({
   status: z.enum(['waiting', 'called', 'weighing', 'rejected']),
@@ -139,9 +170,14 @@ function safeUser(row: RowDataPacket) {
     location: row.location,
     state: row.state,
     district: row.district,
+    avatarUrl: row.avatar_data || undefined,
     verificationStatus: row.verification_status,
     landAcres: row.land_acres === null ? undefined : Number(row.land_acres),
     primaryCrops: row.primary_crops ? String(row.primary_crops).split(',') : [],
+    gstin: row.gstin || undefined,
+    tradeCategory: row.trade_category || undefined,
+    cscKioskId: row.csc_kiosk_id || undefined,
+    govCadre: row.gov_cadre || undefined,
     bankAccountLinked: Boolean(row.bank_account_linked),
     assignedCentreId: row.assigned_centre_id || undefined,
   };
@@ -166,6 +202,106 @@ async function assertCentreAccess(req: Request, centreId: string): Promise<void>
 }
 
 export const apiRouter = Router();
+
+apiRouter.post('/maps/geocode', authenticate, allowRoles('farmer'), asyncRoute(async (req, res) => {
+  const input = parse(geocodeSchema, req.body);
+  const key = process.env.GOOGLE_MAPS_SERVER_API_KEY;
+  if (!key) throw new ApiError(503, 'Map geocoding is not configured. Set GOOGLE_MAPS_SERVER_API_KEY on the server.');
+
+  const params = new URLSearchParams({
+    key,
+    region: 'in',
+    ...( 'address' in input ? { address: input.address } : { latlng: `${input.lat},${input.lng}` }),
+  });
+  const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?${params}`, {
+    signal: AbortSignal.timeout(10000),
+  });
+  if (!response.ok) throw new ApiError(502, 'Google Geocoding could not complete the request.');
+  const result = await response.json() as {
+    status?: string;
+    results?: Array<{
+      formatted_address?: string;
+      geometry?: { location?: { lat?: number; lng?: number } };
+    }>;
+  };
+  if (result.status === 'ZERO_RESULTS' || !result.results?.[0]?.geometry?.location) {
+    throw new ApiError(404, 'Google Maps could not find coordinates for that location.');
+  }
+  if (result.status !== 'OK') {
+    throw new ApiError(502, 'Google Geocoding returned an error. Check API enablement, key restrictions, and billing.');
+  }
+
+  const firstResult = result.results[0];
+  res.json({
+    lat: firstResult.geometry!.location!.lat,
+    lng: firstResult.geometry!.location!.lng,
+    formattedAddress: firstResult.formatted_address || '',
+  });
+}));
+
+apiRouter.post('/maps/routes', authenticate, allowRoles('farmer'), asyncRoute(async (req, res) => {
+  const input = parse(routesSchema, req.body);
+  const key = process.env.GOOGLE_MAPS_SERVER_API_KEY;
+  if (!key) throw new ApiError(503, 'Road routing is not configured. Set GOOGLE_MAPS_SERVER_API_KEY on the server.');
+
+  const response = await fetch('https://routes.googleapis.com/distanceMatrix/v2:computeRouteMatrix', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Goog-Api-Key': key,
+      'X-Goog-FieldMask': 'originIndex,destinationIndex,distanceMeters,duration,condition,status',
+    },
+    body: JSON.stringify({
+      origins: [{
+        waypoint: { location: { latLng: { latitude: input.origin.lat, longitude: input.origin.lng } } },
+      }],
+      destinations: input.destinations.map(destination => ({
+        waypoint: { location: { latLng: { latitude: destination.lat, longitude: destination.lng } } },
+      })),
+      travelMode: 'DRIVE',
+      routingPreference: 'TRAFFIC_AWARE',
+      regionCode: 'IN',
+    }),
+    signal: AbortSignal.timeout(15000),
+  });
+  if (!response.ok) throw new ApiError(502, 'Google Routes could not calculate road distances. Check Routes API enablement, key restrictions, and billing.');
+
+  const body = await response.text();
+  let elements: Array<{
+    destinationIndex?: number;
+    distanceMeters?: number;
+    duration?: string;
+    condition?: string;
+    status?: { code?: number };
+  }>;
+  try {
+    const trimmedBody = body.trim();
+    elements = trimmedBody.startsWith('[')
+      ? JSON.parse(trimmedBody)
+      : trimmedBody.split(/\r?\n/).filter(Boolean).map(line => JSON.parse(line));
+  } catch {
+    throw new ApiError(502, 'Google Routes returned an unreadable response.');
+  }
+
+  res.json(elements.flatMap(element => {
+    const destination = element.destinationIndex === undefined
+      ? undefined
+      : input.destinations[element.destinationIndex];
+    const durationSeconds = element.duration ? Number.parseFloat(element.duration) : NaN;
+    if (
+      !destination ||
+      element.status?.code ||
+      element.condition !== 'ROUTE_EXISTS' ||
+      !Number.isFinite(element.distanceMeters) ||
+      !Number.isFinite(durationSeconds)
+    ) return [];
+    return [{
+      centreId: destination.centreId,
+      distanceMeters: element.distanceMeters,
+      durationSeconds,
+    }];
+  }));
+}));
 
 apiRouter.post('/auth/register', asyncRoute(async (req, res) => {
   const input = parse(registrationSchema, req.body);
@@ -212,6 +348,102 @@ apiRouter.post('/auth/login', asyncRoute(async (req, res) => {
   res.json({ user: safeUser(userRow), token: signToken(user) });
 }));
 
+apiRouter.get('/profile', authenticate, asyncRoute(async (req, res) => {
+  const [rows] = await getDatabase().execute<RowDataPacket[]>(
+    `SELECT u.*, (u.bank_account_number IS NOT NULL AND u.bank_account_number <> '') AS bank_account_linked,
+      (SELECT GROUP_CONCAT(fc.crop_name ORDER BY fc.crop_name SEPARATOR ',') FROM farmer_crops fc WHERE fc.farmer_id = u.id) AS primary_crops
+     FROM users u WHERE u.id = ? LIMIT 1`,
+    [req.user!.id],
+  );
+  if (!rows[0]) throw new ApiError(404, 'Profile not found.');
+  res.json(safeUser(rows[0]));
+}));
+
+apiRouter.patch('/profile', authenticate, asyncRoute(async (req, res) => {
+  const input = parse(profileUpdateSchema, req.body);
+  const allowedFields: Partial<Record<keyof typeof input, Role[]>> = {
+    landAcres: ['farmer'],
+    primaryCrops: ['farmer'],
+    gstin: ['buyer'],
+    tradeCategory: ['buyer'],
+    cscKioskId: ['assisted'],
+    govCadre: ['officer', 'admin'],
+  };
+  for (const field of Object.keys(allowedFields) as Array<keyof typeof input>) {
+    if (input[field] !== undefined && !allowedFields[field]?.includes(req.user!.role)) {
+      throw new ApiError(403, `The ${field} field cannot be changed for this account role.`);
+    }
+  }
+
+  const connection = await getDatabase().getConnection();
+  try {
+    await connection.beginTransaction();
+    const [userRows] = await connection.execute<RowDataPacket[]>(
+      'SELECT id, role FROM users WHERE id = ? FOR UPDATE',
+      [req.user!.id],
+    );
+    const userRow = userRows[0];
+    if (!userRow) throw new ApiError(404, 'Profile not found.');
+
+    const assignments: string[] = [];
+    const values: Array<string | number | null> = [];
+    const columns: Array<{ column: string; value: string | number | null | undefined }> = [
+      { column: 'name', value: input.name },
+      { column: 'mobile', value: input.mobile },
+      { column: 'email', value: input.email === '' ? null : input.email },
+      { column: 'location', value: input.location },
+      { column: 'state', value: input.state },
+      { column: 'district', value: input.district },
+      { column: 'land_acres', value: input.landAcres },
+      { column: 'avatar_data', value: input.avatarData },
+      { column: 'gstin', value: input.gstin },
+      { column: 'trade_category', value: input.tradeCategory },
+      { column: 'csc_kiosk_id', value: input.cscKioskId },
+      { column: 'gov_cadre', value: input.govCadre },
+    ];
+    for (const { column, value } of columns) {
+      if (value === undefined) continue;
+      assignments.push(`${column} = ?`);
+      values.push(value);
+    }
+    if (assignments.length) {
+      values.push(req.user!.id);
+      await connection.execute(
+        `UPDATE users SET ${assignments.join(', ')} WHERE id = ?`,
+        values,
+      );
+    }
+
+    if (input.primaryCrops !== undefined) {
+      await connection.execute('DELETE FROM farmer_crops WHERE farmer_id = ?', [req.user!.id]);
+      for (const crop of input.primaryCrops) {
+        await connection.execute(
+          'INSERT INTO farmer_crops (id, farmer_id, crop_name) VALUES (?, ?, ?)',
+          [randomUUID(), req.user!.id, crop],
+        );
+      }
+    }
+    await connection.commit();
+  } catch (error) {
+    await connection.rollback();
+    if ((error as { code?: string }).code === 'ER_DUP_ENTRY') {
+      throw new ApiError(409, 'That mobile number or email is already used by another account.');
+    }
+    throw error;
+  } finally {
+    connection.release();
+  }
+
+  const [rows] = await getDatabase().execute<RowDataPacket[]>(
+    `SELECT u.*, (u.bank_account_number IS NOT NULL AND u.bank_account_number <> '') AS bank_account_linked,
+      (SELECT GROUP_CONCAT(fc.crop_name ORDER BY fc.crop_name SEPARATOR ',') FROM farmer_crops fc WHERE fc.farmer_id = u.id) AS primary_crops
+     FROM users u WHERE u.id = ? LIMIT 1`,
+    [req.user!.id],
+  );
+  if (!rows[0]) throw new ApiError(404, 'Profile not found.');
+  res.json(safeUser(rows[0]));
+}));
+
 apiRouter.get('/centres', asyncRoute(async (_req, res) => {
   const [rows] = await getDatabase().query<RowDataPacket[]>(
     `SELECT c.*,
@@ -231,7 +463,8 @@ apiRouter.get('/centres', asyncRoute(async (_req, res) => {
     phone: row.phone || '', supportedCrops: row.supported_crops ? String(row.supported_crops).split(',') : [],
     currentQueueCount: Number(row.current_queue_count || 0), averageWaitTimeMinutes: Number(row.average_wait_minutes || 0),
     availableSlotsToday: Math.max(0, Number(row.daily_slot_capacity) - Number(row.current_queue_count || 0)),
-    lat: Number(row.latitude || 0), lng: Number(row.longitude || 0),
+    lat: row.latitude === null ? null : Number(row.latitude),
+    lng: row.longitude === null ? null : Number(row.longitude),
   })));
 }));
 
@@ -647,6 +880,9 @@ apiRouter.post('/admin/centres', authenticate, allowRoles('admin'), asyncRoute(a
     contactPerson: z.string().max(255).optional(), phone: z.string().max(32).optional(),
     latitude: z.number().min(-90).max(90).optional(), longitude: z.number().min(-180).max(180).optional(),
     supportedCrops: z.array(z.string().min(1).max(100)).default([]),
+  }).refine(input => (input.latitude === undefined) === (input.longitude === undefined), {
+    message: 'latitude and longitude must be provided together.',
+    path: ['longitude'],
   }).parse(req.body);
   const id = randomUUID();
   const connection = await getDatabase().getConnection();

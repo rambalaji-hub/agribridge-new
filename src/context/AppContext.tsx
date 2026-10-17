@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { 
   UserProfile, 
   UserRole, 
+  ProfileUpdate,
   LanguageCode, 
   ProcurementBooking, 
   ProcurementCentre, 
@@ -40,6 +41,7 @@ import {
   recordQuality as apiRecordQuality,
   recordWeighSlip as apiRecordWeighSlip,
   register as apiRegister,
+  updateProfile as apiUpdateProfile,
   updateBookingStatus as apiUpdateBookingStatus,
 } from '../lib/api';
 
@@ -73,10 +75,14 @@ interface AppContextType {
   isAiAssistantOpen: boolean;
   activeTab: string;
   setActiveTab: (tab: string) => void;
+  bookSlotAtCentre: (centreId: string) => void;
+  bookingCentreId: string | null;
+  setBookingCentreId: (centreId: string | null) => void;
   
   // Actions
   loginAsRole: (role: UserRole) => void;
   loginWithCredentials: (identifier: string, secret: string) => Promise<boolean>;
+  updateUserProfile: (profile: ProfileUpdate) => Promise<UserProfile>;
   registerUser: (user: UserProfile, password?: string) => Promise<void>;
   logout: () => void;
   setLanguage: (lang: LanguageCode) => void;
@@ -161,6 +167,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isBackendLoading, setIsBackendLoading] = useState(false);
   const [offlineSyncPending, setOfflineSyncPending] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<string>('dashboard');
+  const [bookingCentreId, setBookingCentreId] = useState<string | null>(null);
 
   // Business Data State
   const [bookings, setBookings] = useState<ProcurementBooking[]>(INITIAL_BOOKINGS);
@@ -291,6 +298,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const updateUserProfile = async (profile: ProfileUpdate): Promise<UserProfile> => {
+    if (!currentUser) throw new Error('Sign in before updating your profile.');
+    if (hasApiSession()) {
+      const updatedUser = await apiUpdateProfile(profile);
+      setCurrentUser(updatedUser);
+      return updatedUser;
+    }
+    const updatedUser = { ...currentUser, ...profile };
+    setCurrentUser(updatedUser);
+    return updatedUser;
+  };
+
   const logout = () => {
     apiLogout();
     if (currentUser) {
@@ -337,6 +356,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const openAiAssistant = () => setIsAiAssistantOpen(true);
   const closeAiAssistant = () => setIsAiAssistantOpen(false);
   const toggleAiAssistant = () => setIsAiAssistantOpen(prev => !prev);
+  const bookSlotAtCentre = (centreId: string) => {
+    setBookingCentreId(centreId);
+    setActiveTab('book-slot');
+  };
 
   // Web Speech API integration
   const speakText = (text: string, langCode?: LanguageCode) => {
@@ -890,8 +913,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         isAiAssistantOpen,
         activeTab,
         setActiveTab,
+        bookSlotAtCentre,
+        bookingCentreId,
+        setBookingCentreId,
         loginAsRole,
         loginWithCredentials,
+        updateUserProfile,
         registerUser,
         logout,
         setLanguage,

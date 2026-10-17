@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { UserRole, LanguageCode } from '../../types';
+import { getLandingText as text } from '../../i18n/landingTranslations';
 
 // Import generated procurement project images
 import mandiHeroImg from '../../assets/images/agricultural_procurement_hero_1789721128951.jpg';
@@ -48,6 +49,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 }) => {
   const { 
     language, 
+    t,
+    tD,
+    localizeCrop,
     setLanguage, 
     theme, 
     toggleTheme, 
@@ -62,15 +66,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const [calcQty, setCalcQty] = useState<number>(45);
 
   const mspRatesList = [
-    { crop: 'Paddy (Grade A)', tamil: 'நெல் (கிரேடு ஏ)', msp: 2320, season: 'Kharif', lastYear: 2203, change: '+₹117' },
-    { crop: 'Paddy (Common)', tamil: 'நெல் (சாதாரண)', msp: 2300, season: 'Kharif', lastYear: 2183, change: '+₹117' },
-    { crop: 'Wheat', tamil: 'கோதுமை', msp: 2275, season: 'Rabi', lastYear: 2125, change: '+₹150' },
-    { crop: 'Maize / Corn', tamil: 'மக்காச்சோளம்', msp: 2090, season: 'Kharif', lastYear: 1962, change: '+₹128' },
-    { crop: 'Moong (Green Gram)', tamil: 'பாசிப்பயறு', msp: 8682, season: 'Kharif', lastYear: 8558, change: '+₹124' },
-    { crop: 'Cotton (Medium)', tamil: 'பருத்தி (நடுத்தர இழை)', msp: 7121, season: 'Kharif', lastYear: 6620, change: '+₹501' },
-    { crop: 'Groundnut in Shell', tamil: 'நிலக்கடலை', msp: 6783, season: 'Kharif', lastYear: 6377, change: '+₹406' },
-    { crop: 'Soyabean (Yellow)', tamil: 'சோயாபீன்', msp: 4892, season: 'Kharif', lastYear: 4600, change: '+₹292' },
+    { crop: 'Paddy (Grade A)', msp: 2320, season: 'Kharif', lastYear: 2203, change: '+₹117' },
+    { crop: 'Paddy (Common)', msp: 2300, season: 'Kharif', lastYear: 2183, change: '+₹117' },
+    { crop: 'Wheat', msp: 2275, season: 'Rabi', lastYear: 2125, change: '+₹150' },
+    { crop: 'Maize / Corn', msp: 2090, season: 'Kharif', lastYear: 1962, change: '+₹128' },
+    { crop: 'Moong (Green Gram)', msp: 8682, season: 'Kharif', lastYear: 8558, change: '+₹124' },
+    { crop: 'Cotton (Medium)', msp: 7121, season: 'Kharif', lastYear: 6620, change: '+₹501' },
+    { crop: 'Groundnut in Shell', msp: 6783, season: 'Kharif', lastYear: 6377, change: '+₹406' },
+    { crop: 'Soyabean (Yellow)', msp: 4892, season: 'Kharif', lastYear: 4600, change: '+₹292' },
   ];
+
+  const localizedUnits: Record<LanguageCode, { minutes: string; quintals: string; per100kg: string; online: string; kharif: string; rabi: string; themeToggle: string }> = {
+    en: { minutes: 'mins', quintals: 'Quintals', per100kg: 'per 100 kg', online: 'Online', kharif: 'Kharif', rabi: 'Rabi', themeToggle: 'Toggle theme' },
+    ta: { minutes: 'நிமிடங்கள்', quintals: 'குவிண்டால்கள்', per100kg: '100 கிலோவுக்கு', online: 'இணைப்பு உள்ளது', kharif: 'காரிஃப்', rabi: 'ரபி', themeToggle: 'தோற்றத்தை மாற்று' },
+    hi: { minutes: 'मिनट', quintals: 'क्विंटल', per100kg: 'प्रति 100 किग्रा', online: 'ऑनलाइन', kharif: 'खरीफ', rabi: 'रबी', themeToggle: 'थीम बदलें' },
+    te: { minutes: 'నిమిషాలు', quintals: 'క్వింటాళ్లు', per100kg: '100 కిలోలకు', online: 'ఆన్‌లైన్', kharif: 'ఖరీఫ్', rabi: 'రబీ', themeToggle: 'థీమ్ మార్చండి' },
+    kn: { minutes: 'ನಿಮಿಷಗಳು', quintals: 'ಕ್ವಿಂಟಾಲ್', per100kg: 'ಪ್ರತಿ 100 ಕೆಜಿ', online: 'ಆನ್‌ಲೈನ್', kharif: 'ಖರೀಫ್', rabi: 'ರಬಿ', themeToggle: 'ಥೀಮ್ ಬದಲಿಸಿ' },
+    ml: { minutes: 'മിനിറ്റ്', quintals: 'ക്വിന്റൽ', per100kg: '100 കിലോയ്ക്ക്', online: 'ഓൺലൈൻ', kharif: 'ഖാരിഫ്', rabi: 'റാബി', themeToggle: 'തീം മാറ്റുക' },
+    mr: { minutes: 'मिनिटे', quintals: 'क्विंटल', per100kg: 'प्रति 100 किलो', online: 'ऑनलाइन', kharif: 'खरीप', rabi: 'रब्बी', themeToggle: 'थीम बदला' },
+  };
 
   const selectedCropMsp = mspRatesList.find(c => c.crop === calcCrop)?.msp || 2320;
   const calculatedEarnings = (calcQty * selectedCropMsp).toLocaleString('en-IN');
@@ -78,22 +92,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   return (
     <div className="min-h-screen bg-[#fafbfc] dark:bg-black text-slate-900 dark:text-slate-100 selection:bg-emerald-100 transition-colors">
       
-      {/* 1. TOP OFFICIAL ANNOUNCEMENT BAR */}
-      <div className="bg-emerald-800 dark:bg-emerald-950 text-white text-xs px-4 py-2 flex flex-wrap items-center justify-between gap-2 border-b border-emerald-700/50">
-        <div className="flex items-center gap-2 font-medium">
-          <span className="bg-emerald-600 dark:bg-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-            Official Govt Portal
-          </span>
-          <span>Department of Food, Civil Supplies & Agricultural Marketing • DPC KMS 2025-26</span>
-        </div>
-        <div className="flex items-center gap-4 text-emerald-100 text-[11px]">
-          <span className="hidden sm:inline">Kisan Toll-Free: <strong>1800-180-1551</strong></span>
-          <span className="hidden md:inline">•</span>
-          <span className="hidden md:inline">24x7 Mandi Grievance Cell: <strong>1967</strong></span>
-        </div>
-      </div>
-
-      {/* 2. PRIMARY NAVBAR */}
+      {/* PRIMARY NAVBAR */}
       <header className="sticky top-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-md border-b border-slate-200 dark:border-white/10 shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
           
@@ -112,18 +111,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </span>
               </div>
               <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium leading-none mt-0.5">
-                வேளாண் மின்-கொள்முதல் & நேரடி சந்தை தளம்
+                {t.appSubtitle}
               </p>
             </div>
           </div>
 
           {/* Quick Nav Anchors for Desktop */}
           <nav className="hidden lg:flex items-center gap-6 text-xs font-semibold text-slate-600 dark:text-slate-300">
-            <a href="#overview" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Overview</a>
-            <a href="#procurement-flow" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Procurement Flow</a>
-            <a href="#live-stats" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Live Mandi Stats</a>
-            <a href="#msp-rates" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">MSP Rates</a>
-            <a href="#portals" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Role Portals</a>
+            <a href="#overview" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">{text(language, 'overview')}</a>
+            <a href="#procurement-flow" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">{text(language, 'procurementFlow')}</a>
+            <a href="#live-stats" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">{text(language, 'liveStats')}</a>
+            <a href="#msp-rates" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">{text(language, 'mspRates')}</a>
+            <a href="#portals" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">{text(language, 'rolePortals')}</a>
           </nav>
 
           {/* Right Action Controls */}
@@ -132,10 +131,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <button
               onClick={openVoiceModal}
               className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-xs font-semibold hover:bg-emerald-100 transition-colors"
-              title="Voice Assisted Navigation in Tamil/Hindi"
+              title={text(language, 'voice')}
             >
               <Volume2 className="w-3.5 h-3.5" />
-              <span>Voice / குரல்</span>
+              <span>{text(language, 'voice')}</span>
             </button>
 
             {/* Language Selector */}
@@ -157,7 +156,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <button
               onClick={toggleTheme}
               className="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-neutral-800 border border-slate-200 dark:border-white/10 transition-colors"
-              aria-label="Toggle Theme"
+              aria-label={localizedUnits[language].themeToggle}
             >
               {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4 text-amber-400" />}
             </button>
@@ -168,7 +167,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               id="landing-portal-login-btn"
               className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-bold shadow-sm transition-all flex items-center gap-1.5 group"
             >
-              <span>Portal Sign In / உள்நுழைவு</span>
+              <span>{text(language, 'signIn')}</span>
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
             </button>
           </div>
@@ -189,18 +188,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-100/90 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-300 text-xs font-bold">
                 <ShieldCheck className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
-                <span>National Agricultural MSP Procurement & Mandi Digitization Mission</span>
+                <span>{text(language, 'heroMission')}</span>
               </div>
 
               <div className="space-y-3">
                 <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.15]">
-                  Transparent MSP Procurement, Digital Weighment & Direct Farm Gate Trade
+                  {text(language, 'heroTitle')}
                 </h1>
                 <p className="text-sm sm:text-base text-emerald-800 dark:text-emerald-400 font-bold">
-                  நேர்மையான ஆதரவு விலை (MSP), வெளிப்படையான டிஜிட்டல் எடை & உழவர் நேரடி விற்பனை
+                  {t.portalTagline}
                 </p>
                 <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl">
-                  AgriBridge connects <strong>Farmers, APMC Mandi Officers, Bulk Millers & Buyers</strong> in an end-to-end e-governance workflow. Book arrival tokens from home, eliminate 2-day tractor waiting queues, verify calibrated electronic weighbridge slips, and receive 100% Direct Benefit Transfer (DBT) into your bank account within 48 hours.
+                  {text(language, 'heroDescription')}
                 </p>
               </div>
 
@@ -211,7 +210,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   className="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold text-xs sm:text-sm shadow-md shadow-emerald-600/20 transition-all flex items-center gap-2 group"
                 >
                   <Sprout className="w-4 h-4" />
-                  <span>Farmer Slot Booking & Login / உழவர் டோக்கன்</span>
+                  <span>{text(language, 'farmerLogin')}</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </button>
 
@@ -220,7 +219,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   className="px-4 py-3 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs sm:text-sm shadow-sm transition-all flex items-center gap-2"
                 >
                   <Building2 className="w-4 h-4" />
-                  <span>Officer Mandi Portal / அதிகாரி</span>
+                  <span>{text(language, 'officerPortal')}</span>
                 </button>
 
                 <button
@@ -228,7 +227,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   className="px-4 py-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs sm:text-sm shadow-sm transition-all flex items-center gap-2"
                 >
                   <ShoppingCart className="w-4 h-4" />
-                  <span>Buyer Marketplace / வாங்குபவர்</span>
+                  <span>{text(language, 'buyerMarketplace')}</span>
                 </button>
               </div>
 
@@ -236,19 +235,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-slate-200 dark:border-white/10 text-xs">
                 <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 font-semibold">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>Zero Middleman Cuts</span>
+                  <span>{text(language, 'noMiddlemen')}</span>
                 </div>
                 <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 font-semibold">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>48h Direct DBT Transfer</span>
+                  <span>{text(language, 'dbtTransfer')}</span>
                 </div>
                 <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 font-semibold">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>Aadhaar E-KYC Verified</span>
+                  <span>{text(language, 'aadhaarVerified')}</span>
                 </div>
                 <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 font-semibold">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>SMS & Voice Token Updates</span>
+                  <span>{text(language, 'tokenUpdates')}</span>
                 </div>
               </div>
 
@@ -259,7 +258,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-slate-200 dark:border-white/10 bg-slate-900 group">
                 <img
                   src={mandiHeroImg}
-                  alt="Agricultural Grain Procurement Center"
+                  alt={text(language, 'workflowTitle')}
                   referrerPolicy="no-referrer"
                   className="w-full h-80 sm:h-96 lg:h-[430px] object-cover transform group-hover:scale-105 transition-transform duration-700"
                 />
@@ -280,7 +279,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 1,48,250
               </span>
               <span className="text-xs font-medium text-emerald-100 mt-1 block">
-                Quintals Grain Procured (நடப்பு கொள்முதல்)
+                {text(language, 'grainProcured')}
               </span>
             </div>
 
@@ -289,7 +288,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 ₹34.46 Cr
               </span>
               <span className="text-xs font-medium text-emerald-100 mt-1 block">
-                Direct DBT Disbursed (நேரடி வங்கி பரிமாற்றம்)
+                {text(language, 'dbtPaid')}
               </span>
             </div>
 
@@ -298,25 +297,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 24,800+
               </span>
               <span className="text-xs font-medium text-emerald-100 mt-1 block">
-                Farmers Protected under MSP (பயனடைந்த உழவர்கள்)
+                {text(language, 'farmersSupported')}
               </span>
             </div>
 
             <div className="p-3">
               <span className="text-2xl sm:text-3xl lg:text-4xl font-black text-emerald-300 tracking-tight block">
-                18 Mandis
+                18 {t.navProcurementCentres}
               </span>
               <span className="text-xs font-medium text-emerald-100 mt-1 block">
-                Live Digitized DPC Centers (செயல்பாட்டிலுள்ள மையங்கள்)
+                {text(language, 'centresLive')}
               </span>
             </div>
 
             <div className="p-3 col-span-2 md:col-span-1">
               <span className="text-2xl sm:text-3xl lg:text-4xl font-black text-emerald-300 tracking-tight block">
-                18 Mins
+                18 {localizedUnits[language].minutes}
               </span>
               <span className="text-xs font-medium text-emerald-100 mt-1 block">
-                Avg Turnaround Time (சராசரி காத்திருப்பு நேரம்)
+                {text(language, 'averageWait')}
               </span>
             </div>
 
@@ -330,13 +329,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="text-center max-w-3xl mx-auto mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-xs font-bold mb-3">
             <TrendingUp className="w-3.5 h-3.5" />
-            <span>End-to-End Digital Workflow • முழுமையான கொள்முதல் முறை</span>
+            <span>{text(language, 'workflow')}</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-            How AgriBridge Modernizes Agricultural Procurement
+            {text(language, 'workflowTitle')}
           </h2>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-2">
-            Eliminating traditional mandi bottlenecks with scheduled token management, scientific testing, calibrated weighbridge telemetry, and zero-leakage direct bank disbursement.
+            {text(language, 'workflowDescription')}
           </p>
         </div>
 
@@ -351,27 +350,27 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   1
                 </span>
                 <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                  Pre-Arrival Slot
+                  {text(language, 'preArrival')}
                 </span>
               </div>
               <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                Intelligent Slot Booking & Digital Mandi Token
+                {text(language, 'slotBooking')}
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                Farmers or CSC village operators choose a convenient date and time window from their smartphone or local kiosk. The system predicts queue density, books the nearest DPC centre, and issues an SMS token with QR code.
+                {text(language, 'slotDescription')}
               </p>
               <div className="p-3.5 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/40 text-xs space-y-1.5">
                 <div className="font-bold text-emerald-900 dark:text-emerald-300 flex items-center gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Zero Queue Congestion</span>
+                  <span>{text(language, 'noQueue')}</span>
                 </div>
                 <p className="text-[11px] text-slate-600 dark:text-slate-400">
-                  Farmers arrive directly at their scheduled time, avoiding overnight tractor parking on highways.
+                  {text(language, 'slotDescription')}
                 </p>
               </div>
             </div>
             <div className="pt-4 mt-4 border-t border-slate-100 dark:border-white/10 flex items-center justify-between text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-              <span>Supports 7 Regional Languages</span>
+              <span>{text(language, 'regionalLanguages')}</span>
               <ArrowRight className="w-4 h-4" />
             </div>
           </div>
@@ -381,30 +380,30 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <div className="h-48 overflow-hidden relative">
               <img
                 src={grainTestingImg}
-                alt="Grain Moisture & Quality Testing Analyzer at Procurement Center"
+                alt={text(language, 'qualityLab')}
                 referrerPolicy="no-referrer"
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
               />
               <div className="absolute top-3 left-3 bg-black/80 text-white text-[10px] font-bold px-2.5 py-1 rounded-full backdrop-blur-xs flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>Step 2 • Scientific Quality Lab</span>
+                <span>2 • {text(language, 'qualityLab')}</span>
               </div>
             </div>
             <div className="p-6 space-y-3 flex-1 flex flex-col justify-between">
               <div>
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                  Electronic Moisture Meter & FAQ Grading
+                  {text(language, 'moistureMeter')}
                 </h3>
                 <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mt-1">
-                  At the inspection bay, certified APMC officers sample grain with electronic moisture sensors and digital optical graders. Fair Average Quality (FAQ) certification is issued instantly on the tablet.
+                  {text(language, 'qualityLab')}
                 </p>
               </div>
               <div className="flex items-center gap-3 pt-2 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                <span>Moisture Standard: ≤17.0%</span>
+                <span>{text(language, 'qualityLab')}: ≤17.0%</span>
                 <span>•</span>
-                <span>Foreign Matter: ≤1.0%</span>
+                <span>{text(language, 'action')}: ≤1.0%</span>
                 <span>•</span>
-                <span>Instant Slip Sync</span>
+                <span>{text(language, 'tokenUpdates')}</span>
               </div>
             </div>
           </div>
@@ -421,14 +420,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 3
               </span>
               <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                Tamper-Proof Electronic Weighbridge
+                {text(language, 'weighbridge')}
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                Tractor trolley gross weight and tare weight are automatically recorded via IoT-calibrated digital weighbridges. A tamper-proof printed Weigh Slip is handed to the farmer on the spot.
+                {text(language, 'weighbridge')}
               </p>
             </div>
             <div className="p-2.5 rounded-xl bg-sky-50 dark:bg-sky-950/30 text-sky-900 dark:text-sky-300 text-[11px] font-semibold border border-sky-200 dark:border-sky-800">
-              Direct telemetry sync prevents weight manipulation.
+              {text(language, 'weighbridge')}
             </div>
           </div>
 
@@ -437,20 +436,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <div className="h-36 overflow-hidden relative">
               <img
                 src={warehouseImg}
-                alt="FCI and State Warehouse Grain Sacks Stacking and Logistics Dispatch"
+                alt={text(language, 'safeStorage')}
                 referrerPolicy="no-referrer"
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
               />
               <div className="absolute top-2.5 left-2.5 bg-black/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-xs">
-                Step 4 • Safe Storage
+                4 • {text(language, 'safeStorage')}
               </div>
             </div>
             <div className="p-5 space-y-2">
               <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                FCI & SWC Godown Barcode Stacking
+                {text(language, 'safeStorage')}
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                Procured grain bags are batch-coded with tamper seals and transferred directly to Food Corporation of India godowns or state buffer reserves.
+                {text(language, 'safeStorage')}
               </p>
             </div>
           </div>
@@ -462,15 +461,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 5
               </span>
               <h3 className="text-base font-bold text-emerald-900 dark:text-emerald-300">
-                Direct Benefit Transfer (DBT) in 48 Hours
+                {text(language, 'directPayment')}
               </h3>
               <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
-                As soon as the Procurement Officer verifies the weigh slip, payment vouchers are queued on PFMS. Funds are credited directly to the farmer's Aadhaar-linked bank account without middlemen.
+                {text(language, 'directPayment')}
               </p>
             </div>
             <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300 text-xs font-bold">
               <CreditCard className="w-4 h-4 text-emerald-600" />
-              <span>Direct Bank SMS & Receipt Generation</span>
+              <span>{text(language, 'dbtTransfer')}</span>
             </div>
           </div>
 
@@ -489,13 +488,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div>
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-xs font-bold mb-2">
                   <Award className="w-3.5 h-3.5" />
-                  <span>Government Notified Minimum Support Prices (KMS 2025-26)</span>
+                  <span>{text(language, 'mspNotice')} (KMS 2025-26)</span>
                 </div>
                 <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                  Official Procurement MSP Rates • குறைந்தபட்ச ஆதரவு விலை
+                  {text(language, 'officialMsp')}
                 </h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  Fixed benchmark prices guaranteed by the Central and State Governments for farmer grain procurement.
+                  {text(language, 'mspDescription')}
                 </p>
               </div>
 
@@ -505,30 +504,30 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <table className="w-full text-left text-xs">
                     <thead className="bg-slate-50 dark:bg-neutral-800 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider border-b border-slate-200 dark:border-white/10">
                       <tr>
-                        <th className="py-3 px-4">Crop / பயிர் வகை</th>
-                        <th className="py-3 px-3">Season</th>
-                        <th className="py-3 px-3">Current MSP (₹/Qtl)</th>
-                        <th className="py-3 px-3">Hike</th>
-                        <th className="py-3 px-4 text-right">Action</th>
+                        <th className="py-3 px-4">{text(language, 'crop')}</th>
+                        <th className="py-3 px-3">{text(language, 'season')}</th>
+                        <th className="py-3 px-3">{text(language, 'currentMsp')}</th>
+                        <th className="py-3 px-3">{text(language, 'increase')}</th>
+                        <th className="py-3 px-4 text-right">{text(language, 'action')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                       {mspRatesList.map((item) => (
                         <tr key={item.crop} className="hover:bg-slate-50/80 dark:hover:bg-neutral-800/40 transition-colors">
                           <td className="py-3 px-4">
-                            <span className="font-bold text-slate-900 dark:text-white block">{item.crop}</span>
-                            <span className="text-[11px] text-slate-500 dark:text-slate-400">{item.tamil}</span>
+                            <span className="font-bold text-slate-900 dark:text-white block">{localizeCrop(item.crop)}</span>
+                            <span className="text-[11px] text-slate-500 dark:text-slate-400">{text(language, 'mspRates')}</span>
                           </td>
                           <td className="py-3 px-3">
                             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-slate-300">
-                              {item.season}
+                              {item.season === 'Kharif' ? localizedUnits[language].kharif : localizedUnits[language].rabi}
                             </span>
                           </td>
                           <td className="py-3 px-3">
                             <span className="text-sm font-black text-emerald-700 dark:text-emerald-400">
                               ₹{item.msp}
                             </span>
-                            <span className="text-[10px] text-slate-400 block">per 100 kg</span>
+                            <span className="text-[10px] text-slate-400 block">{localizedUnits[language].per100kg}</span>
                           </td>
                           <td className="py-3 px-3">
                             <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
@@ -544,7 +543,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                               }}
                               className="px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[11px] font-bold hover:bg-emerald-100"
                             >
-                              Calculate
+                              {text(language, 'calculate')}
                             </button>
                           </td>
                         </tr>
@@ -564,10 +563,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                    MSP Income Estimator • வருமானக் கணிப்பான்
+                    {text(language, 'incomeEstimator')}
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Calculate your guaranteed government payout before visiting the mandi
+                    {text(language, 'guaranteedPayout')}
                   </p>
                 </div>
               </div>
@@ -575,7 +574,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="space-y-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                    Select Your Harvested Crop:
+                    {text(language, 'selectCrop')}:
                   </label>
                   <select
                     value={calcCrop}
@@ -584,7 +583,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   >
                     {mspRatesList.map((c) => (
                       <option key={c.crop} value={c.crop}>
-                        {c.crop} — ₹{c.msp} / Quintal ({c.tamil})
+                        {localizeCrop(c.crop)} — ₹{c.msp} / {localizedUnits[language].quintals}
                       </option>
                     ))}
                   </select>
@@ -593,10 +592,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <div>
                   <div className="flex justify-between items-center mb-1.5">
                     <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                      Estimated Harvest Quantity (Quintals):
+                      {text(language, 'estimatedQuantity')}:
                     </label>
                     <span className="text-xs font-black text-emerald-700 dark:text-emerald-400">
-                      {calcQty} Quintals ({calcQty * 100} kg)
+                      {calcQty} {localizedUnits[language].quintals} ({calcQty * 100} kg)
                     </span>
                   </div>
                   <input
@@ -609,28 +608,28 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     className="w-full accent-emerald-600 h-2 bg-slate-200 dark:bg-neutral-800 rounded-lg cursor-pointer"
                   />
                   <div className="flex justify-between text-[10px] text-slate-400 mt-1">
-                    <span>5 Qtl (Small Farmer)</span>
-                    <span>50 Qtl</span>
-                    <span>100 Qtl</span>
-                    <span>200 Qtl (Bulk)</span>
+                    <span>5 {localizedUnits[language].quintals} ({t.farmerRole})</span>
+                    <span>50 {localizedUnits[language].quintals}</span>
+                    <span>100 {localizedUnits[language].quintals}</span>
+                    <span>200 {localizedUnits[language].quintals}</span>
                   </div>
                 </div>
 
                 {/* Calculation Output Box */}
                 <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 space-y-2">
                   <span className="text-[11px] font-bold text-emerald-900 dark:text-emerald-300 uppercase tracking-wider block">
-                    Guaranteed Mandi Bank Payout:
+                    {text(language, 'guaranteedPayout')}:
                   </span>
                   <div className="flex items-baseline gap-2">
                     <span className="text-3xl font-black text-emerald-700 dark:text-emerald-300">
                       ₹{calculatedEarnings}
                     </span>
                     <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                      Direct DBT
+                      {text(language, 'dbtTransfer')}
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-600 dark:text-slate-400">
-                    Net amount transferred directly to your bank account with 0% middleman commission or brokerage fee.
+                    {text(language, 'dbtTransfer')}
                   </p>
                 </div>
 
@@ -640,7 +639,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 group"
                 >
                   <Calendar className="w-4 h-4" />
-                  <span>Book Procurement Slot for {calcCrop}</span>
+                  <span>{text(language, 'bookSlot')} — {localizeCrop(calcCrop)}</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </button>
               </div>
@@ -658,7 +657,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="text-center max-w-3xl mx-auto mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-xs font-bold mb-3">
             <Users className="w-3.5 h-3.5" />
-            <span>Dedicated Stakeholder Gateways • ஒவ்வொரு பாத்திரத்திற்கும் தனித்தளம்</span>
+            <span>{text(language, 'stakeholderGateways')}</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
             Tailored Portals for Every Participant
@@ -677,18 +676,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <Sprout className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">Farmer</h3>
-                <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 block">உழவர் தளம்</span>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">{t.farmerRole}</h3>
+                <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 block">{t.farmerRole}</span>
               </div>
-              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                Slot booking, live queue tokens, moisture checker, weigh slip downloads & direct surplus sales.
-              </p>
+              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">{t.procurementSubtitle}</p>
             </div>
             <button
               onClick={() => onSelectRolePortal('farmer')}
               className="mt-4 w-full py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-colors flex items-center justify-center gap-1.5"
             >
-              <span>Launch Portal</span>
+              <span>{text(language, 'launchPortal')}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -700,18 +697,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <Building2 className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">Officer</h3>
-                <span className="text-xs font-semibold text-sky-700 dark:text-sky-400 block">கொள்முதல் அதிகாரி</span>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">{t.officerRole}</h3>
+                <span className="text-xs font-semibold text-sky-700 dark:text-sky-400 block">{t.officerRole}</span>
               </div>
-              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                Mandi queue calling, electronic weighbridge bridge sync, moisture grading & payment approvals.
-              </p>
+              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">{t.navWeighingQuality}</p>
             </div>
             <button
               onClick={() => onSelectRolePortal('officer')}
               className="mt-4 w-full py-2 px-3 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs transition-colors flex items-center justify-center gap-1.5"
             >
-              <span>Launch Portal</span>
+              <span>{text(language, 'launchPortal')}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -723,18 +718,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <ShoppingCart className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">Buyer</h3>
-                <span className="text-xs font-semibold text-amber-700 dark:text-amber-400 block">நேரடி வாங்குபவர்</span>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">{t.buyerRole}</h3>
+                <span className="text-xs font-semibold text-amber-700 dark:text-amber-400 block">{t.buyerRole}</span>
               </div>
-              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                Direct farm gate bulk purchase, grain inspection certificates, transparent escrow & logistics.
-              </p>
+              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">{t.navDirectMarketplace}</p>
             </div>
             <button
               onClick={() => onSelectRolePortal('buyer')}
               className="mt-4 w-full py-2 px-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs transition-colors flex items-center justify-center gap-1.5"
             >
-              <span>Launch Portal</span>
+              <span>{text(language, 'launchPortal')}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -746,18 +739,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <HeartHandshake className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">CSC Staff</h3>
-                <span className="text-xs font-semibold text-purple-700 dark:text-purple-400 block">கிராம உதவியாளர்</span>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">{t.assistedRole}</h3>
+                <span className="text-xs font-semibold text-purple-700 dark:text-purple-400 block">{t.assistedRole}</span>
               </div>
-              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                Assisted farmer registration, voice guidance, vernacular kiosk booking for elder farmers.
-              </p>
+              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">{t.navRegisterFarmer}</p>
             </div>
             <button
               onClick={() => onSelectRolePortal('assisted')}
               className="mt-4 w-full py-2 px-3 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs transition-colors flex items-center justify-center gap-1.5"
             >
-              <span>Launch Portal</span>
+              <span>{text(language, 'launchPortal')}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -769,18 +760,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <Landmark className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">Admin</h3>
-                <span className="text-xs font-semibold text-indigo-700 dark:text-indigo-400 block">அரசு நிர்வாகி</span>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">{t.adminRole}</h3>
+                <span className="text-xs font-semibold text-indigo-700 dark:text-indigo-400 block">{t.adminRole}</span>
               </div>
-              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                State APMC surveillance, MSP budget monitoring, grievance redressal & vigilance logs.
-              </p>
+              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">{t.navReports}</p>
             </div>
             <button
               onClick={() => onSelectRolePortal('admin')}
               className="mt-4 w-full py-2 px-3 rounded-xl bg-indigo-700 hover:bg-indigo-800 text-white font-bold text-xs transition-colors flex items-center justify-center gap-1.5"
             >
-              <span>Launch Portal</span>
+              <span>{text(language, 'launchPortal')}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -795,17 +784,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
             <div>
               <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                Live Digitized Procurement Centres (DPCs)
+                {text(language, 'centresHeading')}
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Active APMC mandi centers accepting digital tokens and real-time weighments
+                {text(language, 'centresDescription')}
               </p>
             </div>
             <button
               onClick={() => onSelectRolePortal('farmer')}
               className="text-xs font-bold text-emerald-700 dark:text-emerald-400 hover:underline flex items-center gap-1"
             >
-              <span>View All 18 Centres</span>
+              <span>{text(language, 'viewCentres')}</span>
               <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -820,7 +809,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
                     {centre.name}
                   </span>
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" title="Online" />
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" title={localizedUnits[language].online} />
                 </div>
                 <div className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400">
                   <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
@@ -828,12 +817,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-[10px] pt-1 border-t border-slate-100 dark:border-white/5">
                   <div>
-                    <span className="text-slate-400 block">Queue Waiting</span>
-                    <strong className="text-emerald-600 dark:text-emerald-400 font-bold">{centre.currentQueueCount} farmers</strong>
+                    <span className="text-slate-400 block">{text(language, 'queueWaiting')}</span>
+                    <strong className="text-emerald-600 dark:text-emerald-400 font-bold">{centre.currentQueueCount} {t.farmerRole}</strong>
                   </div>
                   <div>
-                    <span className="text-slate-400 block">Est. Wait Time</span>
-                    <strong className="text-slate-700 dark:text-slate-300 font-bold">{centre.averageWaitTimeMinutes} mins</strong>
+                    <span className="text-slate-400 block">{text(language, 'waitTime')}</span>
+                    <strong className="text-slate-700 dark:text-slate-300 font-bold">{centre.averageWaitTimeMinutes} {localizedUnits[language].minutes}</strong>
                   </div>
                 </div>
               </div>
@@ -850,52 +839,45 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-white font-bold text-sm">
                 <Sprout className="w-5 h-5 text-emerald-500" />
-                <span>AgriBridge e-Procurement</span>
+                <span>{t.appName} • {t.appSubtitle}</span>
               </div>
               <p className="text-[11px] text-slate-400 leading-relaxed">
-                National Digital Agriculture Infrastructure protecting Indian farmers with guaranteed Minimum Support Price (MSP), tamper-proof weighment, and frictionless DBT.
+                {t.portalTagline}
               </p>
-              <div className="text-[10px] text-emerald-400 font-semibold">
-                Open Network for Digital Commerce (ONDC) Agriculture Protocol Compliant
-              </div>
             </div>
 
             <div className="space-y-2">
-              <h4 className="text-white font-bold text-xs uppercase tracking-wider">Farmer Services</h4>
+              <h4 className="text-white font-bold text-xs uppercase tracking-wider">{text(language, 'farmerServices')}</h4>
               <ul className="space-y-1.5 text-[11px]">
-                <li><button onClick={() => onSelectRolePortal('farmer')} className="hover:text-white">Book Arrival Token</button></li>
-                <li><button onClick={() => onSelectRolePortal('farmer')} className="hover:text-white">Live Mandi Queue Tracking</button></li>
-                <li><button onClick={() => onSelectRolePortal('farmer')} className="hover:text-white">Download Digital Weigh Slip</button></li>
-                <li><button onClick={() => onSelectRolePortal('farmer')} className="hover:text-white">Direct Crop Marketplace</button></li>
+                <li><button onClick={() => onSelectRolePortal('farmer')} className="hover:text-white">{t.navBookSlot}</button></li>
+                <li><button onClick={() => onSelectRolePortal('farmer')} className="hover:text-white">{t.navLiveQueue}</button></li>
+                <li><button onClick={() => onSelectRolePortal('farmer')} className="hover:text-white">{t.navWeighSlip}</button></li>
+                <li><button onClick={() => onSelectRolePortal('farmer')} className="hover:text-white">{t.navDirectMarketplace}</button></li>
               </ul>
             </div>
 
             <div className="space-y-2">
-              <h4 className="text-white font-bold text-xs uppercase tracking-wider">Government Links</h4>
+              <h4 className="text-white font-bold text-xs uppercase tracking-wider">{text(language, 'governmentLinks')}</h4>
               <ul className="space-y-1.5 text-[11px]">
-                <li><a href="#msp-rates" className="hover:text-white">National MSP Notification 2025-26</a></li>
-                <li><button onClick={() => onSelectRolePortal('officer')} className="hover:text-white">APMC Centre Administration</button></li>
-                <li><button onClick={() => onSelectRolePortal('admin')} className="hover:text-white">IAS State Command Center</button></li>
-                <li><button onClick={() => onSelectRolePortal('assisted')} className="hover:text-white">CSC Gramin Mitra Registration</button></li>
+                <li><a href="#msp-rates" className="hover:text-white">{text(language, 'mspNotice')}</a></li>
+                <li><button onClick={() => onSelectRolePortal('officer')} className="hover:text-white">{t.officerRole} • {text(language, 'centresHeading')}</button></li>
+                <li><button onClick={() => onSelectRolePortal('admin')} className="hover:text-white">{t.adminRole}</button></li>
+                <li><button onClick={() => onSelectRolePortal('assisted')} className="hover:text-white">{t.assistedRole}</button></li>
               </ul>
             </div>
 
             <div className="space-y-2">
-              <h4 className="text-white font-bold text-xs uppercase tracking-wider">Help & Support</h4>
-              <p className="text-[11px]">Kisan Call Center: <strong>1800-180-1551</strong></p>
-              <p className="text-[11px]">Mandi Grievance Desk: <strong>procure-help@agribridge.gov.in</strong></p>
-              <p className="text-[11px]">Language support: தமிழ், English, हिन्दी, తెలుగు, ಕನ್ನಡ, മലയാളം, मराठी</p>
+              <h4 className="text-white font-bold text-xs uppercase tracking-wider">{text(language, 'helpSupport')}</h4>
+              <p className="text-[11px]">{text(language, 'tollFree')}: <strong>1800-180-1551</strong></p>
+              <p className="text-[11px]">{text(language, 'grievanceCell')}: <strong>procure-help@agribridge.gov.in</strong></p>
+              <p className="text-[11px]">{text(language, 'rolePortals')}: English, தமிழ், हिन्दी, తెలుగు, ಕನ್ನಡ, മലയാളം, मराठी</p>
             </div>
 
           </div>
 
           <div className="border-t border-slate-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
-            <p>© 2026 AgriBridge • National Digital Agriculture Infrastructure. All rights reserved.</p>
-            <div className="flex items-center gap-4">
-              <span>Security Audited (NIC/STQC)</span>
-              <span>•</span>
-              <span>Data Protection & Privacy Policy</span>
-            </div>
+            <p>© 2026 AgriBridge • {t.portalTagline}. {text(language, 'privacy')}</p>
+            <span>{text(language, 'privacy')}</span>
           </div>
         </div>
       </footer>

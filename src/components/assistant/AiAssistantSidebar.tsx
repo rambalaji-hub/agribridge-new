@@ -340,6 +340,8 @@ export const AiAssistantSidebar: React.FC = () => {
   } = useApp();
 
   const [activeLang, setActiveLang] = useState<LanguageCode>(language);
+  const activeLangRef = useRef(activeLang);
+  activeLangRef.current = activeLang;
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -372,6 +374,7 @@ export const AiAssistantSidebar: React.FC = () => {
 
   // Sync activeLang if global app language changes
   useEffect(() => {
+    if (language !== activeLang) stopSpeaking();
     setActiveLang(language);
     setMicError(null);
   }, [language]);
@@ -1328,8 +1331,7 @@ export const AiAssistantSidebar: React.FC = () => {
 
       setMessages(prev => [...prev, botReply]);
 
-      // USER REQUIREMENT: Always speak in the correct selected language using Gemini Voice!
-      if (!isVoiceMuted) {
+      if (wasVoiceQuery && !isVoiceMuted && responseLanguage === activeLangRef.current) {
         if (data.audioBase64) {
           playGeminiAudio(data.audioBase64, botMessageId, data.mimeType || 'audio/wav', {
             text: botReplyText,
@@ -1366,7 +1368,7 @@ export const AiAssistantSidebar: React.FC = () => {
       };
       setMessages(prev => [...prev, errorMessage]);
 
-      if (!isVoiceMuted) {
+      if (wasVoiceQuery && !isVoiceMuted && responseLanguage === activeLangRef.current) {
         speakMessage(errorMsg, errId, responseLanguage);
       }
     } finally {
@@ -1426,7 +1428,7 @@ export const AiAssistantSidebar: React.FC = () => {
                     <span>{tD('aiAssistant')}</span>
                   </h3>
                   <span className="px-1.5 py-0.5 rounded text-[10px] font-black tracking-wider bg-amber-400 text-slate-950">
-                    GEMINI VOICE
+                    {tD('assistantGeminiVoice')}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-[11px] text-emerald-200">
@@ -1647,7 +1649,7 @@ export const AiAssistantSidebar: React.FC = () => {
                           <div className="flex items-center gap-1.5">
                             <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
                               <Sparkles className="w-2.5 h-2.5" />
-                              <span>Gemini Voice</span>
+                              <span>{tD('assistantGeminiVoice')}</span>
                             </span>
                             <span>•</span>
                             <span className="text-[10px]">{msg.timestamp}</span>
@@ -1890,7 +1892,7 @@ export const AiAssistantSidebar: React.FC = () => {
                 <span>{tD('geminiPoweredTag')}</span>
                 <span>•</span>
                 <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
-                  Gemini Voice ({activeVoiceConfig.bcp47})
+                  {tD('assistantGeminiVoice')} ({activeVoiceConfig.bcp47})
                 </span>
               </span>
               <span>{tD('assistantHelpline')}: 1800-180-1551</span>

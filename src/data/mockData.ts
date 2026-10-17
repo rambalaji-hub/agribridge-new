@@ -9,6 +9,9 @@ import {
   NotificationItem, 
   AuditLogEntry 
 } from '../types';
+import groundnutCropImage from '../assets/images/crops/groundnut.jpg';
+import mustardCropImage from '../assets/images/crops/mustard.jpg';
+import sugarcaneCropImage from '../assets/images/crops/sugarcane.jpg';
 
 export const DEMO_USERS: Record<string, UserProfile> = {
   farmer: {
@@ -123,7 +126,7 @@ export const OFFICIAL_CROPS: CropInfo[] = [
     mspPrice: 6783,
     marketPrice: 6600,
     unit: 'Quintal (100 kg)',
-    imageUrl: 'https://images.unsplash.com/photo-1567892791852-520e408ecbb7?w=400&auto=format&fit=crop&q=80',
+    imageUrl: groundnutCropImage,
     maxMoistureAllowed: 8.0,
     foreignMatterAllowed: 2.0,
   },
@@ -167,7 +170,7 @@ export const OFFICIAL_CROPS: CropInfo[] = [
     mspPrice: 5650,
     marketPrice: 5400,
     unit: 'Quintal (100 kg)',
-    imageUrl: 'https://images.unsplash.com/photo-1508615039623-a25605d2b022?w=400&auto=format&fit=crop&q=80',
+    imageUrl: mustardCropImage,
     maxMoistureAllowed: 8.0,
     foreignMatterAllowed: 1.5,
   },
@@ -211,7 +214,7 @@ export const OFFICIAL_CROPS: CropInfo[] = [
     mspPrice: 340, // FRP per Quintal
     marketPrice: 355,
     unit: 'Quintal (100 kg)',
-    imageUrl: 'https://images.unsplash.com/photo-1589135233689-d49fa2a89c61?w=400&auto=format&fit=crop&q=80',
+    imageUrl: sugarcaneCropImage,
     maxMoistureAllowed: 30.0,
     foreignMatterAllowed: 1.0,
   },
@@ -515,7 +518,7 @@ export const MARKETPLACE_LISTINGS: MarketplaceListing[] = [
     pricePerQuintal: 6850,
     harvestDate: 'Dry Pod Bold 20-24 count',
     description: 'Premium bold groundnut pods. Oil content tested >48%. Perfect for snack manufacturing and cold-press oil.',
-    imageUrl: 'https://images.unsplash.com/photo-1567892791852-520e408ecbb7?w=400&auto=format&fit=crop&q=80',
+    imageUrl: groundnutCropImage,
     verificationBadge: true,
     listingDate: '12 Sep 2026',
     status: 'Available',

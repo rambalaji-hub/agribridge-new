@@ -1,4 +1,4 @@
-import { ProcurementBooking, ProcurementCentre, UserProfile } from '../types';
+import { ProcurementBooking, ProcurementCentre, ProfileUpdate, UserProfile } from '../types';
 
 let accessToken: string | null = null;
 
@@ -40,6 +40,17 @@ export async function login(identifier: string, password: string): Promise<UserP
   return result.user;
 }
 
+export async function updateProfile(profile: ProfileUpdate): Promise<UserProfile> {
+  const { avatarUrl, ...profileFields } = profile;
+  return request('/api/profile', {
+    method: 'PATCH',
+    body: JSON.stringify({
+      ...profileFields,
+      ...(avatarUrl !== undefined ? { avatarData: avatarUrl } : {}),
+    }),
+  });
+}
+
 export async function register(user: UserProfile, password: string): Promise<UserProfile> {
   const result = await request<{ user: UserProfile; token: string }>('/api/auth/register', {
     method: 'POST',
@@ -76,6 +87,38 @@ export function localDateString(date = new Date()): string {
 
 export function listCentres(): Promise<ProcurementCentre[]> {
   return request('/api/centres');
+}
+
+export interface MapCoordinate {
+  lat: number;
+  lng: number;
+}
+
+export interface MapLocation extends MapCoordinate {
+  formattedAddress: string;
+}
+
+export interface RoadRoute {
+  centreId: string;
+  distanceMeters: number;
+  durationSeconds: number;
+}
+
+export async function geocodeMapLocation(input: { address: string } | MapCoordinate): Promise<MapLocation> {
+  return request('/api/maps/geocode', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export async function getRoadRoutes(
+  origin: MapCoordinate,
+  destinations: Array<{ centreId: string } & MapCoordinate>
+): Promise<RoadRoute[]> {
+  return request('/api/maps/routes', {
+    method: 'POST',
+    body: JSON.stringify({ origin, destinations }),
+  });
 }
 
 export function findFarmer(query: string): Promise<UserProfile> {

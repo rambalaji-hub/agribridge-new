@@ -802,6 +802,15 @@ export const UI_TRANSLATIONS: Record<string, Record<LanguageCode, string>> = {
     ml: 'MSP, സംഭരണം എന്നിവയുടെ തത്സമയ വിവരം',
     mr: 'हमीभाव आणि खरेदीची थेट माहिती'
   },
+  assistantGeminiVoice: {
+    en: 'Gemini Voice',
+    ta: 'Gemini குரல்',
+    hi: 'Gemini आवाज़',
+    te: 'Gemini వాయిస్',
+    kn: 'Gemini ಧ್ವನಿ',
+    ml: 'Gemini ശബ്ദം',
+    mr: 'Gemini आवाज'
+  },
   assistantMuteVoice: {
     en: 'Mute voice',
     ta: 'குரலை முடக்கு',
