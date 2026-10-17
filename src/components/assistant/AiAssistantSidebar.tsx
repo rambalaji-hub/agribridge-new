@@ -558,6 +558,20 @@ export const AiAssistantSidebar: React.FC = () => {
     setGeminiVoiceActive(false);
   };
 
+  const fallBackToBrowserSpeech = (text: string, messageId: string, langCode: LanguageCode) => {
+    const langConfig = VOICE_LANGUAGES.find(l => l.code === langCode) || VOICE_LANGUAGES[0];
+    void loadAvailableVoices().then(voices => {
+      const voice = findNativeVoice(voices, langConfig);
+      if (voice || langCode === 'en') {
+        playClientSpeechSynthesis(text, messageId, langConfig, voice);
+        return;
+      }
+      setSpeakingMessageId(null);
+      setGeminiVoiceActive(false);
+      setMicError(`Generated audio could not be played, and no ${langConfig.label} (${langConfig.bcp47}) voice is available in this browser.`);
+    });
+  };
+
   // Play audio directly from Gemini Voice base64 data
   const playGeminiAudio = (
     base64Audio: string,
@@ -584,15 +598,7 @@ export const AiAssistantSidebar: React.FC = () => {
         setGeminiVoiceActive(false);
         audioElementRef.current = null;
         if (fallback) {
-          const langConfig = VOICE_LANGUAGES.find(l => l.code === fallback.langCode) || VOICE_LANGUAGES[0];
-          void loadAvailableVoices().then(voices => {
-            const voice = findNativeVoice(voices, langConfig);
-            if (voice) {
-              playClientSpeechSynthesis(fallback.text, messageId, langConfig, voice);
-            } else {
-              setMicError(`Could not play the generated audio, and no ${langConfig.label} (${langConfig.bcp47}) voice is available in this browser.`);
-            }
-          });
+          fallBackToBrowserSpeech(fallback.text, messageId, fallback.langCode);
         } else {
           setMicError('The generated audio could not be decoded. Please try replaying the response.');
         }
@@ -602,7 +608,12 @@ export const AiAssistantSidebar: React.FC = () => {
         console.warn('Audio play was prevented by browser autoplay policy:', playErr);
         setSpeakingMessageId(null);
         setGeminiVoiceActive(false);
-        setMicError('Audio playback was blocked by the browser. Tap Play Voice to replay this response.');
+        audioElementRef.current = null;
+        if (fallback) {
+          fallBackToBrowserSpeech(fallback.text, messageId, fallback.langCode);
+        } else {
+          setMicError('Audio playback was blocked by the browser. Tap Play Voice to replay this response.');
+        }
       });
     } catch (err) {
       console.warn('Failed to initialize Audio element:', err);
@@ -1331,7 +1342,7 @@ export const AiAssistantSidebar: React.FC = () => {
 
       setMessages(prev => [...prev, botReply]);
 
-      if (wasVoiceQuery && !isVoiceMuted && responseLanguage === activeLangRef.current) {
+      if (!isVoiceMuted && responseLanguage === activeLangRef.current) {
         if (data.audioBase64) {
           playGeminiAudio(data.audioBase64, botMessageId, data.mimeType || 'audio/wav', {
             text: botReplyText,
@@ -1368,7 +1379,7 @@ export const AiAssistantSidebar: React.FC = () => {
       };
       setMessages(prev => [...prev, errorMessage]);
 
-      if (wasVoiceQuery && !isVoiceMuted && responseLanguage === activeLangRef.current) {
+      if (!isVoiceMuted && responseLanguage === activeLangRef.current) {
         speakMessage(errorMsg, errId, responseLanguage);
       }
     } finally {

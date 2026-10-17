@@ -8,6 +8,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { apiRouter, apiErrorHandler } from './server/api';
 import { checkDatabase } from './server/database';
+import { LanguageCode } from './src/types';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -57,7 +58,7 @@ interface ChatHistoryItem {
   text: string;
 }
 
-const LANG_NAMES: Record<string, string> = {
+const LANG_NAMES: Record<LanguageCode, string> = {
   en: 'English',
   ta: 'Tamil (தமிழ்)',
   hi: 'Hindi (हिन्दी)',
@@ -66,6 +67,10 @@ const LANG_NAMES: Record<string, string> = {
   ml: 'Malayalam (മലയാളം)',
   mr: 'Marathi (मराठी)'
 };
+
+function isLanguageCode(value: unknown): value is LanguageCode {
+  return typeof value === 'string' && Object.hasOwn(LANG_NAMES, value);
+}
 
 const SPEECH_RECOGNITION_LANGUAGES: Record<string, string> = {
   en: 'English',
@@ -343,6 +348,9 @@ app.post('/api/assistant/chat', async (req: Request, res: Response) => {
     if (!message || typeof message !== 'string') {
       return res.status(400).json({ error: 'Message text is required' });
     }
+    if (!isLanguageCode(language)) {
+      return res.status(400).json({ error: 'A supported language code is required' });
+    }
 
     const targetLangName = LANG_NAMES[language] || 'English';
 
@@ -507,6 +515,9 @@ app.post('/api/assistant/tts', async (req: Request, res: Response) => {
     const { text, language = 'en' } = req.body;
     if (!text || typeof text !== 'string') {
       return res.status(400).json({ error: 'Text string is required' });
+    }
+    if (!isLanguageCode(language)) {
+      return res.status(400).json({ error: 'A supported language code is required' });
     }
 
     if (!ai) {

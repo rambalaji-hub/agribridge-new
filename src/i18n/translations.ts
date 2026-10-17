@@ -173,7 +173,6 @@ export interface TranslationStrings {
   voiceQueueStatus: string;
   voicePaddyMsp: string;
   voicePaymentReady: string;
-  langSwitchAnnounce: string;
 }
 
 export const TRANSLATIONS: Record<LanguageCode, TranslationStrings> = {
@@ -338,8 +337,7 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationStrings> = {
 
     voiceQueueStatus: 'Your token number is 24. Currently 8 farmers are ahead of you at the weighbridge. Estimated wait time is 32 minutes.',
     voicePaddyMsp: 'Official Minimum Support Price for Grade-A Paddy is 2,320 rupees per quintal.',
-    voicePaymentReady: 'Your wheat procurement payment of 2,49,749 rupees has been credited directly to your bank account.',
-    langSwitchAnnounce: 'Language switched to English. The full dashboard has been updated in English.'
+    voicePaymentReady: 'Your wheat procurement payment of 2,49,749 rupees has been credited directly to your bank account.'
   },
 
   ta: {
@@ -503,8 +501,7 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationStrings> = {
 
     voiceQueueStatus: 'உங்கள் டோக்கன் எண் 24. தற்போது உங்கள் வாகனத்திற்கு முன் எடைமேடையில் 8 விவசாயிகள் உள்ளனர். மதிப்பிடப்பட்ட காத்திருப்பு நேரம் 32 நிமிடங்கள்.',
     voicePaddyMsp: 'கிரேடு-ஏ ரக நெல்லுக்கான அதிகாரப்பூர்வ குறைந்தபட்ச ஆதரவு விலை குவிண்டாலுக்கு ரூ. 2,320 ஆகும்.',
-    voicePaymentReady: 'உங்கள் கோதுமை கொள்முதலுக்கான தொகை ரூ. 2,49,749 உங்கள் வங்கிக் கணக்கில் நேரடியாக வரவு வைக்கப்பட்டுள்ளது.',
-    langSwitchAnnounce: 'மொழி தமிழாக மாற்றப்பட்டது. முழு டாஷ்போர்டு தகவல்களும் தமிழில் புதுப்பிக்கப்பட்டுள்ளன.'
+    voicePaymentReady: 'உங்கள் கோதுமை கொள்முதலுக்கான தொகை ரூ. 2,49,749 உங்கள் வங்கிக் கணக்கில் நேரடியாக வரவு வைக்கப்பட்டுள்ளது.'
   },
 
   hi: {
@@ -668,8 +665,7 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationStrings> = {
 
     voiceQueueStatus: 'आपका टोकन नंबर 24 है। वर्तमान में तौल कांटे पर आपके आगे 8 किसान हैं। अनुमानित प्रतीक्षा समय 32 मिनट है।',
     voicePaddyMsp: 'ग्रेड-ए धान का आधिकारिक न्यूनतम समर्थन मूल्य 2,320 रुपये प्रति क्विंटल है।',
-    voicePaymentReady: 'गेहूं खरीद का 2,49,749 रुपये का भुगतान आपके बैंक खाते में प्रत्यक्ष लाभ अंतरण द्वारा जमा कर दिया गया है।',
-    langSwitchAnnounce: 'भाषा बदलकर हिंदी कर दी गई है। पूरा डैशबोर्ड हिंदी में अपडेट हो गया है।'
+    voicePaymentReady: 'गेहूं खरीद का 2,49,749 रुपये का भुगतान आपके बैंक खाते में प्रत्यक्ष लाभ अंतरण द्वारा जमा कर दिया गया है।'
   },
 
   te: {
@@ -833,8 +829,7 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationStrings> = {
 
     voiceQueueStatus: 'మీ టోకెన్ సంఖ్య 24. ప్రస్తుతం మీ ముందు 8 మంది రైతులు ఉన్నారు. వేచి ఉండే సమయం 32 నిమిషాలు.',
     voicePaddyMsp: 'గ్రేడ్-ఎ ధాన్యానికి అధికారిక మద్దతు ధర క్వింటాలుకు రూ. 2,320.',
-    voicePaymentReady: 'మీ గోధుమ సేకరణ మొత్తం రూ. 2,49,749 మీ ఖాతాలో నేరుగా జమ చేయబడింది.',
-    langSwitchAnnounce: 'భాష తెలుగులోకి మార్చబడింది. మొత్తం డ్యాష్‌బోర్డ్ తెలుగులో నవీకరించబడింది.'
+    voicePaymentReady: 'మీ గోధుమ సేకరణ మొత్తం రూ. 2,49,749 మీ ఖాతాలో నేరుగా జమ చేయబడింది.'
   },
 
   kn: {
@@ -998,8 +993,7 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationStrings> = {
 
     voiceQueueStatus: 'ನಿಮ್ಮ ಟೋಕನ್ ಸಂಖ್ಯೆ 24. ನಿಮ್ಮ ಮುಂದೆ 8 ರೈತರಿದ್ದಾರೆ. ಅಂದಾಜು ಕಾಯುವ ಸಮಯ 32 ನಿಮಿಷಗಳು.',
     voicePaddyMsp: 'ಗ್ರೇಡ್-ಎ ಭತ್ತಕ್ಕೆ ಇಂದಿನ ಅಧಿಕೃತ ಕನಿಷ್ಠ ಬೆಂಬಲ ಬೆಲೆ ಕ್ವಿಂಟಾಲ್‌ಗೆ ರೂ. 2,320.',
-    voicePaymentReady: 'ಗೋಧಿ ಸಂಗ್ರಹಣೆಯ ಪಾವತಿ ರೂ. 2,49,749 ನಿಮ್ಮ ಖಾತೆಗೆ ನೇರವಾಗಿ ಜಮೆಯಾಗಿದೆ.',
-    langSwitchAnnounce: 'ಭಾಷೆಯನ್ನು ಕನ್ನಡಕ್ಕೆ ಬದಲಾಯಿಸಲಾಗಿದೆ. ಪೂರ್ಣ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್ ನವೀಕರಿಸಲಾಗಿದೆ.'
+    voicePaymentReady: 'ಗೋಧಿ ಸಂಗ್ರಹಣೆಯ ಪಾವತಿ ರೂ. 2,49,749 ನಿಮ್ಮ ಖಾತೆಗೆ ನೇರವಾಗಿ ಜಮೆಯಾಗಿದೆ.'
   },
 
   ml: {
@@ -1163,8 +1157,7 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationStrings> = {
 
     voiceQueueStatus: 'നിങ്ങളുടെ ടോക്കൺ നമ്പർ 24 ആണ്. നിലവിൽ 8 കർഷകർ നിങ്ങളുടെ മുന്നിലുണ്ട്. പ്രതീക്ഷിക്കുന്ന സമയം 32 മിനിറ്റ്.',
     voicePaddyMsp: 'ഗ്രേഡ് എ നെല്ലിന്റെ ഔദ്യോഗിക താങ്ങുവില ക്വിന്റലിന് 2,320 രൂപയാണ്.',
-    voicePaymentReady: 'നിങ്ങളുടെ ബാങ്ക് അക്കൗണ്ടിലേക്ക് 2,49,749 രൂപ നേരിട്ട് കൈമാറിയിട്ടുണ്ട്.',
-    langSwitchAnnounce: 'ഭാഷ മലയാളത്തിലേക്ക് മാറ്റി. പൂർണ്ണ ഡാഷ്‌ബോർഡ് മലയാളത്തിൽ അപ്‌ഡേറ്റുചെയ്‌തു.'
+    voicePaymentReady: 'നിങ്ങളുടെ ബാങ്ക് അക്കൗണ്ടിലേക്ക് 2,49,749 രൂപ നേരിട്ട് കൈമാറിയിട്ടുണ്ട്.'
   },
 
   mr: {
@@ -1328,7 +1321,6 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationStrings> = {
 
     voiceQueueStatus: 'तुमचा टोकन क्रमांक 24 आहे. सध्या तुमच्या पुढे 8 शेतकरी आहेत. अंदाजे प्रतीक्षा वेळ 32 मिनिटे.',
     voicePaddyMsp: 'ग्रेड ए भातासाठी आजचा अधिकृत हमीभाव प्रति क्विंटल 2,320 रुपये आहे.',
-    voicePaymentReady: 'गहू खरेदीचे 2,49,749 रुपये थेट लाभ हस्तांतरणाद्वारे जमा झाले आहेत.',
-    langSwitchAnnounce: 'भाषा मराठीमध्ये बदलण्यात आली आहे. संपूर्ण डॅशबोर्ड मराठीत अद्यतनित केले आहे.'
+    voicePaymentReady: 'गहू खरेदीचे 2,49,749 रुपये थेट लाभ हस्तांतरणाद्वारे जमा झाले आहेत.'
   }
 };

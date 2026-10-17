@@ -238,10 +238,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const setLanguage = (lang: LanguageCode) => {
     setLangState(lang);
     localStorage.setItem('agribridge_language', lang);
-    const announceMsg = TRANSLATIONS[lang]?.langSwitchAnnounce || `Language switched to ${lang}`;
-    setTimeout(() => {
-      speakText(announceMsg, lang);
-    }, 150);
   };
 
   const toggleTheme = () => {
